@@ -70,11 +70,29 @@ type StudentHomeScreenProps = {
   onBack: () => void;
 };
 
+type LessonKind = 'alphabet' | 'numbers' | 'words';
+
 function StudentHomeScreen({ onBack }: StudentHomeScreenProps) {
-  const [studentPage, setStudentPage] = useState<'start' | 'learn'>('start');
+  const [studentPage, setStudentPage] = useState<
+    'start' | 'learn' | LessonKind
+  >('start');
 
   if (studentPage === 'learn') {
-    return <LearningOptionsScreen onHome={() => setStudentPage('start')} />;
+    return (
+      <LearningOptionsScreen
+        onHome={() => setStudentPage('start')}
+        onSelectLesson={setStudentPage}
+      />
+    );
+  }
+
+  if (studentPage !== 'start') {
+    return (
+      <LessonIntroScreen
+        lesson={studentPage}
+        onBack={() => setStudentPage('learn')}
+      />
+    );
   }
 
   return (
@@ -133,9 +151,13 @@ function StudentHomeScreen({ onBack }: StudentHomeScreenProps) {
 
 type LearningOptionsScreenProps = {
   onHome: () => void;
+  onSelectLesson: (lesson: LessonKind) => void;
 };
 
-function LearningOptionsScreen({ onHome }: LearningOptionsScreenProps) {
+function LearningOptionsScreen({
+  onHome,
+  onSelectLesson,
+}: LearningOptionsScreenProps) {
   return (
     <View style={styles.studentScreen} accessibilityLanguage="de-DE">
       <Pressable
@@ -158,15 +180,39 @@ function LearningOptionsScreen({ onHome }: LearningOptionsScreenProps) {
       </Text>
 
       <View style={styles.learningOptions}>
-        <View style={styles.learningOption}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityHint="Öffnet die Einführung zum Alphabetlernen"
+          onPress={() => onSelectLesson('alphabet')}
+          style={({ pressed }) => [
+            styles.learningOption,
+            pressed && styles.pressed,
+          ]}
+        >
           <Text style={styles.learningOptionText}>Alphabete lernen</Text>
-        </View>
-        <View style={styles.learningOption}>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityHint="Öffnet die Einführung zum Zahlenlernen"
+          onPress={() => onSelectLesson('numbers')}
+          style={({ pressed }) => [
+            styles.learningOption,
+            pressed && styles.pressed,
+          ]}
+        >
           <Text style={styles.learningOptionText}>Zahlen lernen</Text>
-        </View>
-        <View style={styles.learningOption}>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityHint="Öffnet die Einführung zum Wörterlernen"
+          onPress={() => onSelectLesson('words')}
+          style={({ pressed }) => [
+            styles.learningOption,
+            pressed && styles.pressed,
+          ]}
+        >
           <Text style={styles.learningOptionText}>Wörter lernen</Text>
-        </View>
+        </Pressable>
       </View>
 
       <Pressable
@@ -181,6 +227,70 @@ function LearningOptionsScreen({ onHome }: LearningOptionsScreenProps) {
       >
         <Text style={styles.studentBackText}>Zurück</Text>
       </Pressable>
+    </View>
+  );
+}
+
+type LessonIntroScreenProps = {
+  lesson: LessonKind;
+  onBack: () => void;
+};
+
+const lessonContent: Record<LessonKind, { title: string; description: string }> = {
+  alphabet: {
+    title: 'Alphabete lernen',
+    description:
+      'Hier werden Sie die Alphabete von A bis Z erkunden. Das Kästchen in Blindenschrift zeigt die entsprechende Zahl, die Sie lernen werden.',
+  },
+  numbers: {
+    title: 'Zahlen lernen',
+    description:
+      'Hier werden Sie die Zahlen von 1 bis 9 erkunden. Das Kästchen in Blindenschrift zeigt die entsprechende Zahl, die Sie lernen werden.',
+  },
+  words: {
+    title: 'Wörter lernen',
+    description:
+      'Hier werden Sie die Alphabete von A bis Z erkunden. Das Kästchen in Blindenschrift zeigt die entsprechende Zahl, die Sie lernen werden.',
+  },
+};
+
+function LessonIntroScreen({ lesson, onBack }: LessonIntroScreenProps) {
+  const { title, description } = lessonContent[lesson];
+
+  return (
+    <View style={styles.lessonScreen} accessibilityLanguage="de-DE">
+      <View style={styles.lessonHeader}>
+        <Text accessibilityRole="header" style={styles.lessonTitle}>
+          {title}
+        </Text>
+      </View>
+
+      <View style={styles.lessonDescriptionContainer}>
+        <Text style={styles.lessonDescription}>{description}</Text>
+      </View>
+
+      <View style={styles.lessonNavigation}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Zurück zu den Lernoptionen"
+          onPress={onBack}
+          style={({ pressed }) => [
+            styles.lessonNavigationButton,
+            pressed && styles.pressed,
+          ]}
+        >
+          <Text style={styles.lessonNavigationText}>Zurück</Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Nächste Lektion, noch nicht verfügbar"
+          accessibilityState={{ disabled: true }}
+          disabled
+          style={styles.lessonNavigationButton}
+        >
+          <Text style={styles.lessonNavigationText}>Nächste</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -405,5 +515,54 @@ const styles = StyleSheet.create({
   learningBackButton: {
     alignSelf: 'center',
     marginBottom: 8,
+  },
+  lessonScreen: {
+    flex: 1,
+    paddingHorizontal: 9,
+  },
+  lessonHeader: {
+    alignItems: 'center',
+    marginTop: 50,
+    borderTopWidth: 1,
+    borderTopColor: '#FFE52B',
+    paddingTop: 7,
+  },
+  lessonTitle: {
+    color: '#FFE52B',
+    fontSize: 29,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  lessonDescriptionContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 2,
+  },
+  lessonDescription: {
+    color: '#FFFFFF',
+    fontSize: 26,
+    fontWeight: '700',
+    lineHeight: 32,
+    textAlign: 'center',
+  },
+  lessonNavigation: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 20,
+    marginBottom: 32,
+  },
+  lessonNavigationButton: {
+    flex: 1,
+    minHeight: 51,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 16,
+    backgroundColor: '#FFE52B',
+    paddingHorizontal: 8,
+  },
+  lessonNavigationText: {
+    color: '#0A2B91',
+    fontSize: 29,
+    fontWeight: '400',
   },
 });
