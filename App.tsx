@@ -360,7 +360,10 @@ function AlphabetStudyScreen({ onBack, onHome }: AlphabetStudyScreenProps) {
         onPress={onHome}
         style={styles.alphabetHome}
       >
-        <View style={styles.alphabetHomeMark} accessibilityElementsHidden>
+        <View
+          style={styles.alphabetHomeMark}
+          accessibilityElementsHidden
+        >
           <View style={styles.alphabetHomeRoof} />
           <View style={styles.alphabetHomeBody}>
             <View style={styles.alphabetHomeDoor} />
@@ -400,6 +403,8 @@ function AlphabetStudyScreen({ onBack, onHome }: AlphabetStudyScreenProps) {
           );
         })}
       </View>
+
+      <View style={styles.alphabetSpacer} />
 
       <View style={styles.alphabetNavigation}>
         <Pressable
@@ -715,19 +720,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   alphabetHome: {
-    height: 43,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
+    height: 80,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
     borderBottomWidth: 1,
     borderBottomColor: '#0A2B91',
     paddingHorizontal: 8,
   },
   alphabetHomeMark: {
     width: 20,
-    height: 21,
+    height: 18,
     alignItems: 'center',
     justifyContent: 'flex-end',
+    marginLeft: 4,
   },
   alphabetHomeRoof: {
     position: 'absolute',
@@ -755,11 +760,11 @@ const styles = StyleSheet.create({
   },
   alphabetHomeLabel: {
     color: '#0A2B91',
-    fontSize: 11,
-    lineHeight: 14,
+    fontSize: 10,
+    lineHeight: 12,
   },
   alphabetPrompt: {
-    marginTop: 26,
+    marginTop: 20,
     color: '#0A2B91',
     fontSize: 16,
     fontWeight: '700',
@@ -771,8 +776,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    rowGap: 42,
-    marginTop: 28,
+    rowGap: 44,
+    marginTop: 42,
   },
   brailleDot: {
     width: 60,
@@ -793,11 +798,14 @@ const styles = StyleSheet.create({
   brailleDotTextActive: {
     color: '#FFE52B',
   },
+  alphabetSpacer: {
+    flex: 1,
+  },
   alphabetNavigation: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 28,
-    marginBottom: 57,
+    marginBottom: 35,
     paddingHorizontal: 16,
   },
   alphabetNavigationButton: {
