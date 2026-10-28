@@ -1,7 +1,8 @@
 {
   "expo": {
-    "name": "Braille_Application",
-    "slug": "Braille_Application",
+    "name": "Braille Lernen",
+    "slug": "braille-lernen",
+    "scheme": "braillelernen",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
