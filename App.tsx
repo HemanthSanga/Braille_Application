@@ -71,11 +71,10 @@ type StudentHomeScreenProps = {
 };
 
 type LessonKind = 'alphabet' | 'numbers' | 'words';
+type StudentPage = 'start' | 'learn' | LessonKind | 'alphabetStudy';
 
 function StudentHomeScreen({ onBack }: StudentHomeScreenProps) {
-  const [studentPage, setStudentPage] = useState<
-    'start' | 'learn' | LessonKind
-  >('start');
+  const [studentPage, setStudentPage] = useState<StudentPage>('start');
 
   if (studentPage === 'learn') {
     return (
@@ -86,11 +85,21 @@ function StudentHomeScreen({ onBack }: StudentHomeScreenProps) {
     );
   }
 
+  if (studentPage === 'alphabetStudy') {
+    return (
+      <AlphabetStudyScreen
+        onBack={() => setStudentPage('alphabet')}
+        onHome={() => setStudentPage('start')}
+      />
+    );
+  }
+
   if (studentPage !== 'start') {
     return (
       <LessonIntroScreen
         lesson={studentPage}
         onBack={() => setStudentPage('learn')}
+        onNext={() => setStudentPage('alphabetStudy')}
       />
     );
   }
@@ -234,6 +243,7 @@ function LearningOptionsScreen({
 type LessonIntroScreenProps = {
   lesson: LessonKind;
   onBack: () => void;
+  onNext: () => void;
 };
 
 const lessonContent: Record<LessonKind, { title: string; description: string }> = {
@@ -254,7 +264,11 @@ const lessonContent: Record<LessonKind, { title: string; description: string }> 
   },
 };
 
-function LessonIntroScreen({ lesson, onBack }: LessonIntroScreenProps) {
+function LessonIntroScreen({
+  lesson,
+  onBack,
+  onNext,
+}: LessonIntroScreenProps) {
   const { title, description } = lessonContent[lesson];
 
   return (
@@ -283,12 +297,142 @@ function LessonIntroScreen({ lesson, onBack }: LessonIntroScreenProps) {
         </Pressable>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Nächste Lektion, noch nicht verfügbar"
-          accessibilityState={{ disabled: true }}
-          disabled
+          accessibilityLabel={
+            lesson === 'alphabet'
+              ? 'Alphabetlektion starten'
+              : 'Nächste Lektion, noch nicht verfügbar'
+          }
+          accessibilityState={{ disabled: lesson !== 'alphabet' }}
+          disabled={lesson !== 'alphabet'}
+          onPress={onNext}
           style={styles.lessonNavigationButton}
         >
           <Text style={styles.lessonNavigationText}>Nächste</Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+const brailleLetters = [
+  { letter: 'A', dots: [1] },
+  { letter: 'B', dots: [1, 2] },
+  { letter: 'C', dots: [1, 4] },
+  { letter: 'D', dots: [1, 4, 5] },
+  { letter: 'E', dots: [1, 5] },
+  { letter: 'F', dots: [1, 2, 4] },
+  { letter: 'G', dots: [1, 2, 4, 5] },
+  { letter: 'H', dots: [1, 2, 5] },
+  { letter: 'I', dots: [2, 4] },
+  { letter: 'J', dots: [2, 4, 5] },
+  { letter: 'K', dots: [1, 3] },
+  { letter: 'L', dots: [1, 2, 3] },
+  { letter: 'M', dots: [1, 3, 4] },
+  { letter: 'N', dots: [1, 3, 4, 5] },
+  { letter: 'O', dots: [1, 3, 5] },
+  { letter: 'P', dots: [1, 2, 3, 4] },
+  { letter: 'Q', dots: [1, 2, 3, 4, 5] },
+  { letter: 'R', dots: [1, 2, 3, 5] },
+  { letter: 'S', dots: [2, 3, 4] },
+  { letter: 'T', dots: [2, 3, 4, 5] },
+  { letter: 'U', dots: [1, 3, 6] },
+  { letter: 'V', dots: [1, 2, 3, 6] },
+  { letter: 'W', dots: [2, 4, 5, 6] },
+  { letter: 'X', dots: [1, 3, 4, 6] },
+  { letter: 'Y', dots: [1, 3, 4, 5, 6] },
+  { letter: 'Z', dots: [1, 3, 5, 6] },
+] as const;
+
+type AlphabetStudyScreenProps = {
+  onBack: () => void;
+  onHome: () => void;
+};
+
+function AlphabetStudyScreen({ onBack, onHome }: AlphabetStudyScreenProps) {
+  const [letterIndex, setLetterIndex] = useState(0);
+  const currentLetter = brailleLetters[letterIndex];
+
+  return (
+    <View style={styles.alphabetScreen} accessibilityLanguage="de-DE">
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Zur Startseite"
+        onPress={onHome}
+        style={styles.alphabetHome}
+      >
+        <View style={styles.alphabetHomeMark} accessibilityElementsHidden>
+          <View style={styles.alphabetHomeRoof} />
+          <View style={styles.alphabetHomeBody}>
+            <View style={styles.alphabetHomeDoor} />
+          </View>
+        </View>
+        <Text style={styles.alphabetHomeLabel}>HOME</Text>
+      </Pressable>
+
+      <Text accessibilityRole="header" style={styles.alphabetPrompt}>
+        SIE LERNEN DAS ALPHABET {currentLetter.letter}
+      </Text>
+
+      <View style={styles.brailleGrid} accessibilityLabel="Braille-Zeichen">
+        {[1, 4, 2, 5, 3, 6].map((dot) => {
+          const isActive = currentLetter.dots.some(
+            (activeDot) => activeDot === dot,
+          );
+          return (
+            <View
+              key={dot}
+              accessible
+              accessibilityLabel={`Punkt ${dot}${isActive ? ', aktiv' : ', nicht aktiv'}`}
+              style={[
+                styles.brailleDot,
+                isActive && styles.brailleDotActive,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.brailleDotText,
+                  isActive && styles.brailleDotTextActive,
+                ]}
+              >
+                {dot}
+              </Text>
+            </View>
+          );
+        })}
+      </View>
+
+      <View style={styles.alphabetNavigation}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Zurück zur Alphabeteinführung"
+          onPress={onBack}
+          style={({ pressed }) => [
+            styles.alphabetNavigationButton,
+            pressed && styles.pressed,
+          ]}
+        >
+          <Text style={styles.alphabetNavigationText}>Zurück</Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={
+            letterIndex === brailleLetters.length - 1
+              ? 'Letzter Buchstabe erreicht'
+              : `Nächster Buchstabe ${brailleLetters[letterIndex + 1].letter}`
+          }
+          accessibilityState={{ disabled: letterIndex === brailleLetters.length - 1 }}
+          disabled={letterIndex === brailleLetters.length - 1}
+          onPress={() =>
+            setLetterIndex((index) =>
+              Math.min(index + 1, brailleLetters.length - 1),
+            )
+          }
+          style={({ pressed }) => [
+            styles.alphabetNavigationButton,
+            pressed && styles.pressed,
+          ]}
+        >
+          <Text style={styles.alphabetNavigationText}>Nächste</Text>
         </Pressable>
       </View>
     </View>
@@ -563,6 +707,111 @@ const styles = StyleSheet.create({
   lessonNavigationText: {
     color: '#0A2B91',
     fontSize: 29,
+    fontWeight: '400',
+  },
+  alphabetScreen: {
+    flex: 1,
+    backgroundColor: '#FFE52B',
+    paddingHorizontal: 2,
+  },
+  alphabetHome: {
+    height: 43,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    borderBottomWidth: 1,
+    borderBottomColor: '#0A2B91',
+    paddingHorizontal: 8,
+  },
+  alphabetHomeMark: {
+    width: 20,
+    height: 21,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+  alphabetHomeRoof: {
+    position: 'absolute',
+    top: 0,
+    width: 0,
+    height: 0,
+    borderLeftWidth: 10,
+    borderRightWidth: 10,
+    borderBottomWidth: 8,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderBottomColor: '#0A2B91',
+  },
+  alphabetHomeBody: {
+    width: 16,
+    height: 13,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    backgroundColor: '#0A2B91',
+  },
+  alphabetHomeDoor: {
+    width: 4,
+    height: 7,
+    backgroundColor: '#FFE52B',
+  },
+  alphabetHomeLabel: {
+    color: '#0A2B91',
+    fontSize: 11,
+    lineHeight: 14,
+  },
+  alphabetPrompt: {
+    marginTop: 26,
+    color: '#0A2B91',
+    fontSize: 16,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  brailleGrid: {
+    width: 152,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    rowGap: 42,
+    marginTop: 28,
+  },
+  brailleDot: {
+    width: 60,
+    height: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 30,
+    backgroundColor: '#FFFFFF',
+  },
+  brailleDotActive: {
+    backgroundColor: '#0A2B91',
+  },
+  brailleDotText: {
+    color: '#0A2B91',
+    fontSize: 24,
+    fontWeight: '700',
+  },
+  brailleDotTextActive: {
+    color: '#FFE52B',
+  },
+  alphabetNavigation: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 28,
+    marginBottom: 57,
+    paddingHorizontal: 16,
+  },
+  alphabetNavigationButton: {
+    flex: 1,
+    minHeight: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 12,
+    backgroundColor: '#0A2B91',
+    paddingHorizontal: 8,
+  },
+  alphabetNavigationText: {
+    color: '#FFE52B',
+    fontSize: 23,
     fontWeight: '400',
   },
 });
